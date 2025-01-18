@@ -31,6 +31,7 @@ public class Main {
     // Angle across from L4
     static double thetaL4 = 0;
 
+
     public static void main(String[] args) {
 
         //enterCoordinates();
@@ -82,7 +83,6 @@ public class Main {
         System.out.println("L4 = " + L4);
         System.out.println("L5 = " + L5);
         System.out.println("L6 = " + L6);
-        
 
     }
 
@@ -96,5 +96,7 @@ public class Main {
 
         System.out.println("Enter y coordinate");
         y = scanner.nextDouble();
+
+        scanner.close();
     }
 }
