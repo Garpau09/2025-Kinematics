@@ -4,7 +4,7 @@ public class Main {
     // Coordinates of end effector destination
     // Meaasured from the rear of the robot touching the ground
     // Positive x toward the front of the robot
-    static double x = -6.35;
+    static double x = -18;
     static double y = 58.88;
     // Ground to fixed rotation point between segments 1 and 2
     static double h = 32;
@@ -49,16 +49,25 @@ public class Main {
             (2 * L4 * L2)  
         );
 
+        
         // Robot moves arm behind itself
         if(x > d || x == d){
             theta1 = Math.acos(
                 (Math.pow(L4, 2) + Math.pow(L1, 2) - Math.pow(L6, 2))/
                 (2 * L4 * L1)  
-        ) - theta3;
+            ) - theta3;
         } else {
             theta1 = 2* Math.PI - theta3 - Math.acos(
                 (Math.pow(L4, 2) + Math.pow(L1, 2) - Math.pow(L6, 2))/
                 (2 * L4 * L1));  
+        }
+
+        try {
+            validateState(theta1);
+        } catch (InvalidArmState e) {
+            System.out.println(e.getMessage());
+            System.out.println("MINIMUM X VALUE EXCEEDED");
+            throw e;
         }
 
         if (L4 == 0 || L6 == 0) {
@@ -98,5 +107,18 @@ public class Main {
         y = scanner.nextDouble();
 
         scanner.close();
+    }
+
+    public static void validateState(double theta) throws InvalidArmState {
+        if (theta > Math.PI) {
+            throw new InvalidArmState("ARM SEGMENT 2 CANNOT EXTEND PAST 180 DEG");
+        }
+    }
+
+    public static class InvalidArmState extends RuntimeException {
+
+        public InvalidArmState(String m) {
+            super(m);
+        }
     }
 }
