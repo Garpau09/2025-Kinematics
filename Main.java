@@ -1,8 +1,5 @@
 import java.util.Scanner;
 
-import javax.swing.tree.AbstractLayoutCache;
-
-
 /**
  * The robot operates on three segments: L1, L2, and L3
  * Although only the final two move, the origin of the coordinate system sits on the ground at the back
