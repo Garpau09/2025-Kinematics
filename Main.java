@@ -38,7 +38,8 @@ public class Main {
     static double L6 = 0;
     // Angle between vertical and segment 2
     static double theta1 = 0;
-    // Angle between horizontal and segment 3
+    // Relative - angle between horizontal and segment 3
+    // Absolute - angle between segment 3 and an extension of segment 2
     static double theta2 = 0;
     // Angle between L4 and segment 2
     static double theta3 = 0;
