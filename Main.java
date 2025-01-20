@@ -4,15 +4,15 @@ import java.util.Scanner;
  * 
  * OnShape: https://cad.onshape.com/documents/0eb11a58606ee3c3dda8aa0d/w/d1c684d1c568543878764fb7/e/4c2980432bfd825f337a321f?renderMode=0&uiState=678c52c70a7cb65a2aa773cc
  * 
- * The robot operates on three segments: L1, L2, and L3
+ * The robot operates on three segments: TOWER_CHASSIS_HEIGHT_METERS, SHOULDER_LENGTH_METERS, and ELBOW_LENGTH_METERS
  * Although only the final two move, the origin of the coordinate system sits on the ground at the back
  * of the robot.
  * 
- * When running on relative encoders within the robot, the final segment (L3) operates on an angle relative 
+ * When running on relative encoders within the robot, the final segment (ELBOW_LENGTH_METERS) operates on an angle relative 
  * to the horizontal/Earth
  * 
- * Absoulte encoders are fixed to the previous segment.  Measuring with absolute, the final segment (L3)
- * operates at an angle relative to second segment (L2)
+ * Absoulte encoders are fixed to the previous segment.  Measuring with absolute, the final segment (ELBOW_LENGTH_METERS)
+ * operates at an angle relative to second segment (SHOULDER_LENGTH_METERS)
  */
 public class Main {
     // Coordinates of end effector destination
@@ -25,9 +25,9 @@ public class Main {
     // Horizontally, rear of robot to the segment 1/2 rotation point
     static double d = 6;
     // Length of each segment
-    static double L1 = 24;
-    static double L2 = 22;
-    static double L3 = 24;
+    static double TOWER_CHASSIS_HEIGHT_METERS = 24;
+    static double SHOULDER_LENGTH_METERS = 22;
+    static double ELBOW_LENGTH_METERS = 24;
 
     //Unknowns
     // Straight line drawn from segment 1/2 to x/y coordinate
@@ -39,73 +39,62 @@ public class Main {
     // Angle between vertical and segment 2
     static double theta1 = 0;
     // Relative - angle between horizontal and segment 3
+    static double relativeTheta2 = 0;
     // Absolute - angle between segment 3 and an extension of segment 2
-    static double theta2 = 0;
+    static double absoluteTheta2 = 0;
     // Angle between L4 and segment 2
     static double theta3 = 0;
     // Angle across from L4
     static double thetaL4 = 0;
 
-    static enum Encoder{
-        ABSOLUTE,
-        RELATIVE
-    };
-
     static double[] values = new double[7];
-
-    static final Encoder encoder = Encoder.ABSOLUTE;
 
     public static void main(String[] args) {
         enterCoordinates();
-
-        switch (encoder) {
-            case ABSOLUTE:
-                calculateAbsolute();
-            break;
-
-            case RELATIVE:
-                calculateRelative();
-            break;
-        }
-        
+        calculateTargetAngle();
     }
 
-    public static void calculateAbsolute(){
+    public static void calculateTargetAngle() {
+
         L4 = Math.sqrt(
             (Math.pow(x-d, 2) + Math.pow(y-h, 2))
         );
 
         L6 = Math.sqrt(
-            Math.pow(x-d, 2) + Math.pow(y-h+L1, 2)
+            Math.pow(x-d, 2) + Math.pow(y-h+TOWER_CHASSIS_HEIGHT_METERS, 2)
         );
 
         theta3 = Math.acos(
-            (Math.pow(L4, 2) + Math.pow(L2, 2) - Math.pow(L3, 2)) /
-            (2 * L4 * L2)  
+            (Math.pow(L4, 2) + Math.pow(SHOULDER_LENGTH_METERS, 2) - Math.pow(ELBOW_LENGTH_METERS, 2)) /
+            (2 * L4 * SHOULDER_LENGTH_METERS)  
         );
 
                 // Robot moves arm behind itself
         if(x > d || x == d){
             theta1 = Math.acos(
-                (Math.pow(L4, 2) + Math.pow(L1, 2) - Math.pow(L6, 2))/
-                (2 * L4 * L1)  
+                (Math.pow(L4, 2) + Math.pow(TOWER_CHASSIS_HEIGHT_METERS, 2) - Math.pow(L6, 2))/
+                (2 * L4 * TOWER_CHASSIS_HEIGHT_METERS)  
             ) - theta3;
         } else {
             theta1 = 2* Math.PI - theta3 - Math.acos(
-                (Math.pow(L4, 2) + Math.pow(L1, 2) - Math.pow(L6, 2))/
-                (2 * L4 * L1));  
+                (Math.pow(L4, 2) + Math.pow(TOWER_CHASSIS_HEIGHT_METERS, 2) - Math.pow(L6, 2))/
+                (2 * L4 * TOWER_CHASSIS_HEIGHT_METERS));  
         }
 
         L5 = Math.sqrt(
-            Math.pow(L1, 2) + Math.pow(L2, 2) - (2* L1 * L2) * Math.cos(theta1)
+            Math.pow(TOWER_CHASSIS_HEIGHT_METERS, 2) + Math.pow(SHOULDER_LENGTH_METERS, 2) - (2* TOWER_CHASSIS_HEIGHT_METERS * SHOULDER_LENGTH_METERS) * Math.cos(theta1)
         );
 
         thetaL4 = Math.acos(
-            (Math.pow(L2, 2) + Math.pow(L3, 2) - Math.pow(L4, 2))/
-            (2 * L2 * L3)
+            (Math.pow(SHOULDER_LENGTH_METERS, 2) + Math.pow(ELBOW_LENGTH_METERS, 2) - Math.pow(L4, 2))/
+            (2 * SHOULDER_LENGTH_METERS * ELBOW_LENGTH_METERS)
         );
 
-        theta2 = Math.PI - thetaL4;
+        // Relative
+        relativeTheta2 = (Math.PI/2) + theta1  - thetaL4;
+
+        // Absolute
+        absoluteTheta2 = Math.PI - thetaL4;
 
         try {
             validateState(theta1);
@@ -114,71 +103,9 @@ public class Main {
             throw e;
         }
 
-
-        System.out.println("ABSOLUTE VALUES");
-        System.out.println("    theta1: " + Math.toDegrees(theta1) + " degrees");
-        System.out.println("    theta2: " + Math.toDegrees(theta2) + " degrees");
-        System.out.println("    theta3 = " + Math.toDegrees(theta3));
-        System.out.println("    thetaL4 = " + Math.toDegrees(thetaL4) + " degrees");
-        System.out.println("    L4 = " + L4);
-        System.out.println("    L5 = " + L5);
-        System.out.println("    L6 = " + L6);
-
-    }
-
-    public static void calculateRelative() {
-        L4 = Math.sqrt(
-            (Math.pow(x-d, 2) + Math.pow(y-h, 2))
-        );
-     
-        L6 = Math.sqrt(
-            Math.pow(x-d, 2) + Math.pow(y-h+L1, 2)
-        );
-
-        theta3 = Math.acos(
-            (Math.pow(L4, 2) + Math.pow(L2, 2) - Math.pow(L3, 2)) /
-            (2 * L4 * L2)  
-        );
-
-        
-        // Robot moves arm behind itself
-        if(x > d || x == d){
-            theta1 = Math.acos(
-                (Math.pow(L4, 2) + Math.pow(L1, 2) - Math.pow(L6, 2))/
-                (2 * L4 * L1)  
-            ) - theta3;
-        } else {
-            theta1 = 2* Math.PI - theta3 - Math.acos(
-                (Math.pow(L4, 2) + Math.pow(L1, 2) - Math.pow(L6, 2))/
-                (2 * L4 * L1));  
-        }
-
-        L5 = Math.sqrt(
-            Math.pow(L1, 2) + Math.pow(L2, 2) - (2* L1 * L2) * Math.cos(theta1)
-        );
-
-        thetaL4 = Math.acos(
-            (Math.pow(L2, 2) + Math.pow(L3, 2) - Math.pow(L4, 2))/
-            (2 * L2 * L3)
-        );
-
-        theta2 = (Math.PI/2) + theta1  - thetaL4;
-
-        try {
-            validateState(theta1);
-        } catch (InvalidArmState e) {
-            System.out.println(e.getMessage());
-            throw e;
-        }
-
-        System.out.println("RELATIVE VALUES");
-        System.out.println("    theta1: " + Math.toDegrees(theta1) + " degrees");
-        System.out.println("    theta2: " + Math.toDegrees(theta2) + " degrees");
-        System.out.println("    theta3 = " + Math.toDegrees(theta3));
-        System.out.println("    thetaL4 = " + Math.toDegrees(thetaL4) + " degrees");
-        System.out.println("    L4 = " + L4);
-        System.out.println("    L5 = " + L5);
-        System.out.println("    L6 = " + L6);
+        System.out.println("theta1: " + Math.toDegrees(theta1));
+        System.out.println("absolute theta2: " + Math.toDegrees(absoluteTheta2));
+        System.out.println("relative theta2: " + Math.toDegrees(relativeTheta2));
     }
 
     public static void enterCoordinates() {
@@ -204,7 +131,7 @@ public class Main {
         values[1] = L5;
         values[2] = L6;
         values[3] = theta1;
-        values[4] = theta2;
+        values[4] = relativeTheta2;
         values[5] = theta3;
         values[6] = thetaL4;
 
