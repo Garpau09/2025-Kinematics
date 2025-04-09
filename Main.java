@@ -28,8 +28,9 @@ public class Main {
     static double TOWER_CHASSIS_HEIGHT_METERS = 27.375;
     static double SHOULDER_LENGTH_METERS = 22.75;
     static double ELBOW_LENGTH_METERS = 24.75;
+    static double H_TOWER_GROUND_HEIGHT_METERS = 31.25;
 
-    static double L1 = TOWER_CHASSIS_HEIGHT_METERS;
+    static double L1 = H_TOWER_GROUND_HEIGHT_METERS;
     static double L2 = SHOULDER_LENGTH_METERS;
     static double L3 = ELBOW_LENGTH_METERS;
 
@@ -98,7 +99,7 @@ public class Main {
         }
 
         System.out.println("theta1: " + Math.toDegrees(theta1));
-        //System.out.println("absolute theta2: " + Math.toDegrees(absoluteTheta2));
+        System.out.println("absolute theta2: " + Math.toDegrees(absoluteTheta2));
         System.out.println("relative theta2: " + Math.toDegrees(relativeTheta2));
     }
 
